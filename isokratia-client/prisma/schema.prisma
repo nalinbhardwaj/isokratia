@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model merkle {
+  id         Int    @id @default(autoincrement())
+  merkleRoot String @db.VarChar(255)
+  merkleLeaf String @db.VarChar(255)
+}
+
+model proposal {
+  id          Int    @id @default(autoincrement())
+  title       String @db.VarChar(255)
+  description String @db.VarChar(1023)
+  merkleRoot  String @db.VarChar(255)
+  endBlock    String @db.VarChar(255)
+}
+
+model vote {
+  id          Int    @id @default(autoincrement())
+  address     String @db.VarChar(255)
+  proposal_id Int
+  vote        String @db.VarChar(255)
+  sig         String @db.VarChar(255)
+  pubkey      String @db.VarChar(255)
+}
+
+model proposalOptions {
+  proposal_id Int
+  option      String @db.VarChar(255)
+  id          Int    @id @default(autoincrement())
+}
