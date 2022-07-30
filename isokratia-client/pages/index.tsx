@@ -1,11 +1,11 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import type { NextPage } from 'next';
-import Head from 'next/head';
-import Link from 'next/link';
-import styles from '../styles/Home.module.css';
-import { Proposal } from './types';
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import type { NextPage } from "next";
+import Head from "next/head";
+import Link from "next/link";
+import styles from "../styles/Home.module.css";
+import { Proposal } from "./types";
 
-const Home: NextPage<{proposals: Proposal[]}> = ({ proposals }) => {
+const Home: NextPage<{ proposals: Proposal[] }> = ({ proposals }) => {
   return (
     <div className={styles.container}>
       <Head>
@@ -17,13 +17,20 @@ const Home: NextPage<{proposals: Proposal[]}> = ({ proposals }) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
+      <nav className="font-sans flex flex-col text-center sm:flex-row sm:text-left sm:justify-between py-4 px-6 bg-white sm:items-baseline w-full">
+        <div className="mb-2 sm:mb-0">
+          <a
+            href="/"
+            className="text-2xl no-underline text-grey-darkest hover:text-blue-dark"
+          >
+            isokratia
+          </a>
+        </div>
         <ConnectButton chainStatus="none" />
+      </nav>
 
-        <h1 className={styles.title}>
-          isokratia
-        </h1>
-
+      <main className={styles.main}>
+        <p className={styles.description}>ἴσος / equal / κρατεῖν / to rule</p>
         <p className={styles.description}>
           isokratia is a trustless on-chain voting platform
         </p>
@@ -33,18 +40,24 @@ const Home: NextPage<{proposals: Proposal[]}> = ({ proposals }) => {
             return (
               <Link href={`/proposal/${proposal.id}`}>
                 <a className={styles.card}>
-                  <h2>[{proposal.id}] {proposal.title} &rarr;</h2>
+                  <h2 className="font-bold">
+                    [{proposal.id}] {proposal.title} &rarr;
+                  </h2>
                   <p>{proposal.description}</p>
                 </a>
               </Link>
-            )
+            );
           })}
+          <Link href={`/proposal/new`}>
+            <a className={styles.card}>
+              <h2 className="font-bold">Create new &rarr;</h2>
+              <p>Create a new proposal for owners of an NFT collection!</p>
+            </a>
+          </Link>
         </div>
       </main>
 
-      <footer className={styles.footer}>
-        Made with ❤️ by nibnalin
-      </footer>
+      <footer className={styles.footer}>Made with ❤️ by nibnalin</footer>
     </div>
   );
 };
@@ -52,12 +65,11 @@ const Home: NextPage<{proposals: Proposal[]}> = ({ proposals }) => {
 // This gets called on every request
 export async function getServerSideProps() {
   // Fetch data from external API
-  const res = await fetch(`http://localhost:3000/api/proposal`)
-  const proposals = await res.json()
+  const res = await fetch(`http://localhost:3000/api/proposal`);
+  const proposals = await res.json();
 
   // Pass data to the page via props
-  return { props: { proposals } }
+  return { props: { proposals } };
 }
-
 
 export default Home;

@@ -12,12 +12,15 @@
     "@noble/secp256k1": "^1.6.0",
     "@prisma/client": "^3.15.2",
     "@rainbow-me/rainbowkit": "^0.3.4",
+    "autoprefixer": "^10.4.7",
     "ethers": "^5.6.9",
     "fixed-merkle-tree": "^0.7.3",
     "keccak256": "^1.0.6",
     "next": "^12.1.6",
+    "postcss": "^8.4.14",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "tailwindcss": "^3.1.6",
     "wagmi": "^0.4.2"
   },
   "devDependencies": {
