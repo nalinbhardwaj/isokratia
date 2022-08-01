@@ -1,0 +1,12 @@
+{
+  "name": "isokratia-aggregator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "big-integer": "^1.6.51",
+    "fixed-merkle-tree": "^0.7.3",
+    "node-fetch": "^3.2.10"
+  }
+}
