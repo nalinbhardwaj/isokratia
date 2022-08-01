@@ -4,7 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useBlockNumber } from "wagmi";
 import { Nav } from "../../components/Nav";
 import { Sidebar } from "../../components/Sidebar";
 import styles from "../../styles/Home.module.css";
@@ -18,6 +18,7 @@ const ProposalPage: NextPage<{}> = () => {
   const [options, setOptions] = useState<string[]>(["Yes", "No"]);
   const [newOption, setNewOption] = useState<string>("");
   const { data: account } = useAccount();
+  const { data: currentBlock } = useBlockNumber();
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -25,6 +26,11 @@ const ProposalPage: NextPage<{}> = () => {
 
   const handleEndBlockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEndBlock(e.target.value);
+  };
+
+  const handlePopulateEndBlock = () => {
+    if (!currentBlock) return;
+    setEndBlock(currentBlock.toString());
   };
 
   const handleNewOption = () => {
@@ -105,14 +111,22 @@ const ProposalPage: NextPage<{}> = () => {
 
           <div className="mb-6 w-10/12">
             <label className="block mb-2 text-sm font-medium">End block</label>
-            <input
-              type="number"
-              id="large-input"
-              className="block p-4 w-full rounded-lg border sm:text-md"
-              value={endBlock}
-              onChange={handleEndBlockChange}
-              placeholder="12345678"
-            />
+            <div className="flex items-center gap-x-2 relative mt-2">
+              <input
+                type="number"
+                id="large-input"
+                className="p-2 w-full rounded-lg border sm:text-md flex flex-1"
+                value={endBlock}
+                onChange={handleEndBlockChange}
+                placeholder="12345678"
+              />
+              <button
+                className="bg-blue-400 text-white font-medium p-2 rounded hover:bg-blue-500 transition:all duration-200 ease-in-out"
+                onClick={handlePopulateEndBlock}
+              >
+                Latest block
+              </button>
+            </div>
           </div>
 
           <div className="mb-6 w-10/12">
@@ -194,8 +208,8 @@ const DeleteButton = () => {
       <path
         d="M12.8536 2.85355C13.0488 2.65829 13.0488 2.34171 12.8536 2.14645C12.6583 1.95118 12.3417 1.95118 12.1464 2.14645L7.5 6.79289L2.85355 2.14645C2.65829 1.95118 2.34171 1.95118 2.14645 2.14645C1.95118 2.34171 1.95118 2.65829 2.14645 2.85355L6.79289 7.5L2.14645 12.1464C1.95118 12.3417 1.95118 12.6583 2.14645 12.8536C2.34171 13.0488 2.65829 13.0488 2.85355 12.8536L7.5 8.20711L12.1464 12.8536C12.3417 13.0488 12.6583 13.0488 12.8536 12.8536C13.0488 12.6583 13.0488 12.3417 12.8536 12.1464L8.20711 7.5L12.8536 2.85355Z"
         fill="currentColor"
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
       ></path>
     </svg>
   );
