@@ -2,3 +2,6 @@
 	path = circom-pairing
 	url = https://github.com/nalinbhardwaj/circom-pairing.git
 	branch = isokratia
+[submodule "isokratia-contracts/lib/forge-std"]
+	path = isokratia-contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
