@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import * as secp from "@noble/secp256k1";
 import keccak256 from "keccak256";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { ethers } from "ethers";
 
 const prisma = new PrismaClient();
 
@@ -36,13 +37,42 @@ function Uint8Array_to_bigint(x: Buffer) {
 async function createVote(vote: Vote) {
   const msg =
     "isokratia vote " + vote.vote + " for proposal " + vote.proposal_id;
-  const msghash_bigint = Uint8Array_to_bigint(keccak256(msg));
-  const msghash = bigint_to_Uint8Array(msghash_bigint);
-  console.log("VOTE", vote);
-  console.log("HASH", msghash);
+  console.log("MESSSAGE: " + msg);
 
-  if (!secp.verify(vote.sig, msghash, vote.pubkey)) {
+  // let prefix = "\x19Ethereum Signed Message:\n";
+  // prefix += String(msg.length);
+
+  // const prefixed = prefix.concat(msg);
+  // console.log(prefixed);
+
+  // const msghash_bigint = Uint8Array_to_bigint(keccak256(prefixed));
+  // const msghash = bigint_to_Uint8Array(msghash_bigint);
+  // // console.log("VOTE", vote);
+  // console.log("SIG", vote.sig);
+  // console.log("VOTE", vote);
+  // console.log("HASH", msghash);
+  // console.log("PUBKEY", vote.pubkey);
+
+  // // if (!secp.verify(vote.sig, msghash, vote.pubkey)) {
+  // //   console.log("nope");
+  // //   return 400;
+  // // }
+
+  const address = ethers.utils.verifyMessage(msg, vote.sig);
+  console.log("returned", address);
+  if (address !== vote.address) {
     console.log("nope");
+    return 400;
+  }
+
+  // check if already voted in prisma
+  const existing = await prisma.vote.findFirst({
+    where: {
+      address: vote.address,
+      proposal_id: vote.proposal_id,
+    },
+  });
+  if (existing) {
     return 400;
   }
 
@@ -62,17 +92,21 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log(req);
-  const proposal_id = Number(req.query.proposal_id);
-  const address = req.body.address as string;
-  const pubkey = req.body.pubkey as string;
-  const vote = req.body.vote as string;
-  const sig = req.body.sig as string;
-  if (!proposal_id || !address || !pubkey || !vote || !sig) {
-    res.status(400).send("missing parameters");
-  }
   if (req.method === "POST") {
+    const bobody = req.body;
+    const body = JSON.parse(bobody);
+    const proposal_id = Number(body.proposal_id);
+    const address = body.address as string;
+    const pubkey = body.pubkey as string;
+    const vote = body.vote as string;
+    const sig = body.sig as string;
+    console.log(proposal_id, address, pubkey, vote, sig);
+    if (!proposal_id || !address || !pubkey || !vote || !sig) {
+      console.log("missing fields");
+      return res.status(400).send("missing parameters");
+    }
     // Process a POST request
+    console.log("Calling createVote()");
     const statusCode = await createVote({
       address,
       pubkey,
@@ -86,7 +120,7 @@ export default async function handler(
     // Handle a GET request
     const votes = await prisma.vote.findMany({
       where: {
-        proposal_id: proposal_id,
+        proposal_id: Number(req.query.proposal_id),
       },
     });
     res.json(votes);
