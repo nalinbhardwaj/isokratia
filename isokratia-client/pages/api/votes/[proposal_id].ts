@@ -115,7 +115,7 @@ export default async function handler(
       sig,
     });
     console.log("STATUSCODE", statusCode);
-    res.status(statusCode);
+    res.status(statusCode).end();
   } else if (req.method === "GET") {
     // Handle a GET request
     const votes = await prisma.vote.findMany({
@@ -123,6 +123,6 @@ export default async function handler(
         proposal_id: Number(req.query.proposal_id),
       },
     });
-    res.json(votes);
+    return res.json(votes);
   }
 }

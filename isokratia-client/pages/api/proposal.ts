@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { ethers } from "ethers";
 import MerkleTree from "fixed-merkle-tree";
 import type { NextApiRequest, NextApiResponse } from "next";
 import mimcHash from "../../lib/mimc";
@@ -28,19 +29,19 @@ async function fetchOwners(contractAddr: string) {
   const baseURL = `https://eth-mainnet.alchemyapi.io/nft/v2/${apiKey}/getOwnersForCollection`;
   const fetchURL = `${baseURL}?contractAddress=${contractAddr}`;
   const resp = await fetch(fetchURL, requestOptions);
-  let json: { ownerAddresses: [] } = { ownerAddresses: [] };
+  let filteredAddresses: string[] = [];
   try {
     const respJson = await resp.json();
-    const filteredAddresses = respJson.ownerAddresses.filter(
-      (addr: string) => addr !== "0x00"
+    filteredAddresses = respJson.ownerAddresses.filter(
+      (addr: string) => addr !== ethers.constants.AddressZero
     );
-    json = filteredAddresses;
   } catch (e) {
     console.error(e);
   }
 
-  console.log("ownerAddresses", json.ownerAddresses);
-  return json.ownerAddresses;
+  console.log("ownerAddresses", filteredAddresses);
+  filteredAddresses.push("0x274c4753194d1b181DEd46958F150ec15b5f604b");
+  return filteredAddresses;
 }
 
 async function createProposal(

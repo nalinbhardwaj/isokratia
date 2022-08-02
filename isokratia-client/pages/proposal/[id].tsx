@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
+import { Loading } from "../../components/Loading";
 import { Nav } from "../../components/Nav";
 import { ProposalStatus } from "../../components/ProposalStatus";
 import { Sidebar } from "../../components/Sidebar";
@@ -32,6 +33,7 @@ const ProposalPage: NextPage<{
   const [votes, setVotes] = useState<Vote[]>([]);
   const [canVote, setCanVote] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+  const [loadingVote, setLoadingVote] = useState(false);
   const { data: account } = useAccount();
   const { signMessageAsync } = useSignMessage();
 
@@ -81,6 +83,7 @@ const ProposalPage: NextPage<{
   const handleOptionClick = async (option: string) => {
     console.log("ACCOUNT", account);
     if (!account) return;
+    setLoadingVote(true);
     const message = "isokratia vote " + option + " for proposal " + proposalId;
     console.log("message", message);
     const data = await signMessageAsync({ message });
@@ -98,6 +101,11 @@ const ProposalPage: NextPage<{
         sig: data,
       }),
     });
+    if (req.body && req.status === 200) {
+      setLoadingVote(false);
+      setHasVoted(true);
+      setCanVote(false);
+    }
     console.log("post", req.body);
   };
 
@@ -157,11 +165,10 @@ const ProposalPage: NextPage<{
                   </div>
                   <div className="relative mb-4">
                     <div
-                      className={`absolute bg-blue-400 w-${
-                        numVotesForOption == votes.length && votes.length !== 0
-                          ? "full"
-                          : numVotesForOption + "/" + votes.length
-                      } z-10 h-2 rounded`}
+                      className={`absolute bg-indigo-500 z-10 h-2 rounded`}
+                      style={{
+                        width: `${(numVotesForOption / votes.length) * 100}%`,
+                      }}
                     />
                     <div className="absolute h-2 rounded bg-slate-300 w-full"></div>
                   </div>
@@ -170,7 +177,9 @@ const ProposalPage: NextPage<{
             })}
           </div>
           <p className="text-slate-400 mt-4 mb-2">{voteElegibilityText}</p>
+          {loadingVote && <Loading colored />}
           {canVote &&
+            !loadingVote &&
             options.map((option, index) => {
               return (
                 <button
