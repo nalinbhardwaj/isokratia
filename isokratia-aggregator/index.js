@@ -1,6 +1,9 @@
 import fs from "fs";
 import mimcHash from "./mimc.js";
 import fetch from "node-fetch";
+import keccak256 from "keccak256";
+import shell from "shelljs";
+import { MerkleTree } from "fixed-merkle-tree";
 
 function getPastSnark(proposal, option) {
   const proofFileName = `input/${proposal.id}-${option}-proof.json`;
@@ -83,14 +86,17 @@ function parsePubkey(pk) {
   return [pk_x_arr.map((x) => x.toString()), pk_y_arr.map((x) => x.toString())];
 }
 
-function parseSig(sig) {
-  const r = sig.slice(0, 32);
-  const s = sig.slice(32, 64);
-  var r_bigint = Uint8Array_to_bigint(r);
-  var s_bigint = Uint8Array_to_bigint(s);
+function parseSignature(sig) {
+  console.log("sig", sig);
+  const r_hex = sig.slice(2, 66);
+  const s_hex = sig.slice(66, 66 + 64);
+  // console.log("sig stuff", sig_arr.length, sig_arr);
+  var r_bigint = hexStringTobigInt(r_hex);
+  var s_bigint = hexStringTobigInt(s_hex);
   var r_array = bigint_to_array(64, 4, r_bigint);
   var s_array = bigint_to_array(64, 4, s_bigint);
-  return [r_array.map((x) => x.toString()), s_array.map((x) => x.toString())];
+  console.log("s_bigint", s_bigint);
+  return [r_array, s_array];
 }
 
 const mimcHasher = mimcHash(123);
@@ -114,28 +120,46 @@ function commitmentComputer(
   );
 }
 
+function runProver(proposal, option, vote, input) {
+  console.log("processing prover run", proposal, option, vote, input);
+  const JSONdata = JSON.stringify(input);
+  fs.writeFileSync(`prover-input/${proposal.id}-${option}.json`, JSONdata);
+
+  console.log("running prover");
+  shell.exec(`./gen-proof.sh ${proposal.id}-${option}`);
+  console.log("generated proof");
+}
+
 function processVote(proposal, option, vote, pastProof, pastVoters) {
-  console.log("processing vote", vote);
+  console.log("processing vote", proposal, option, vote, pastProof, pastVoters);
   const msg =
     "isokratia vote " + vote.vote + " for proposal " + vote.proposal_id;
   const msghash_bigint = Uint8Array_to_bigint(keccak256(msg));
-  const msghash = bigint_to_Uint8Array(msghash_bigint);
+  const msghash_array = bigint_to_array(64, 4, msghash_bigint);
   const parsedPubkey = parsePubkey(vote.pubkey);
-  const parsedSig = parseSig(vote.sig);
+  const parsedSig = parseSignature(vote.sig);
 
   const eligibleTree = new MerkleTree(22, proposal.merkleLeaves, {
     hashFunction: mimcHasher,
   });
-  const eligibleRoot = eligibleTree.getRoot();
-  const selfAddress = ethers.utils.computeAddress(
-    ethers.utils.arrayify(vote.pubkey)
-  );
-  const selfMimc = mimcHasher(BigInt(selfAddress));
-  const selfIdx = proposal.merkleLeaves.findIndex((x) => x == selfMimc);
-  const eligiblePathData = eligibleTree.path(selfIdx);
+  const selfMimc = mimcHasher(BigInt(vote.address)).toString();
+  console.log("selfMimc", selfMimc, vote.address);
+  console.log("merkleLeaves", proposal.merkleLeaves);
+  const selfIdx = proposal.merkleLeaves.findIndex((x) => x === selfMimc);
+  console.log("selfIdx", selfIdx);
+  const eligiblePathData = eligibleTree.proof(selfMimc);
+  const eligibleRoot = eligiblePathData.pathRoot;
+  console.log("eligiblePathData", eligiblePathData);
 
-  const voterTree = new MerkleTree(22, [], { hashFunction: mimcHasher });
-  for (const pastVoter in pastVoters) {
+  const voterLeafs = [];
+  for (var i = 0; i < proposal.merkleLeaves.length; i++) {
+    voterLeafs.push(0);
+  }
+
+  const voterTree = new MerkleTree(22, voterLeafs, {
+    hashFunction: mimcHasher,
+  });
+  for (const pastVoter of pastVoters) {
     const pastVoterMimc = mimcHasher(BigInt(pastVoter));
     const pastVoterIdx = proposal.merkleLeaves.findIndex(
       (x) => x == pastVoterMimc
@@ -143,19 +167,37 @@ function processVote(proposal, option, vote, pastProof, pastVoters) {
     voterTree.update(pastVoterIdx, pastVoterMimc);
   }
   voterTree.update(selfIdx, selfMimc);
-  const voterPathData = voterTree.path(selfIdx);
+  const voterPathData = voterTree.proof(selfMimc);
+  const voterRoot = voterPathData.pathRoot;
+  console.log("voterPathData", voterPathData);
 
-  const res = {
-    msghash,
+  const voteCount = pastVoters.length + 1;
+  const semiPublicCommitment = commitmentComputer(
+    voteCount,
+    eligibleRoot,
+    voterRoot,
+    msghash_array,
+    pastProof
+  );
+
+  const nextInput = {
+    semiPublicCommitment,
+    voteCount,
+    msghash: msghash_array.map((x) => x.toString()),
     pubkey: parsedPubkey,
-    r: parsedSig[0],
-    s: parsedSig[1],
-    eligiblePathElements: eligiblePathData.pathElements,
-    voterPathElements: voterPathData.pathElements,
+    r: parsedSig[0].map((x) => x.toString()),
+    s: parsedSig[1].map((x) => x.toString()),
+    eligiblePathElements: eligiblePathData.pathElements.map((x) =>
+      x.toString()
+    ),
+    voterPathElements: voterPathData.pathElements.map((x) => x.toString()),
     pathIndices: eligiblePathData.pathIndices,
+    eligibleRoot: eligibleRoot.toString(),
+    voterRoot: voterRoot.toString(),
+    ...pastProof,
   };
 
-  console.log("res", res);
+  runProver(proposal, option, vote, nextInput);
 }
 
 async function processProposalOption(proposal, option) {
@@ -164,7 +206,7 @@ async function processProposalOption(proposal, option) {
   const allCurrentVotes = await req.json();
   const { pastProof, pastVoters } = getPastSnark(proposal, option);
 
-  for (const voter in allCurrentVotes) {
+  for (const voter of allCurrentVotes) {
     if (!(voter.address in pastVoters)) {
       processVote(proposal, option, voter, pastProof, pastVoters);
       return true;
