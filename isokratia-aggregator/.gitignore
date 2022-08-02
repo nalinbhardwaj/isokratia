@@ -1,2 +1,6 @@
 circuit
 node_modules
+input
+!input/blank-proof.json
+prover-input
+prover-output
