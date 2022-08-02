@@ -4,7 +4,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { Nav } from "../../components/Nav";
 import { ProposalStatus } from "../../components/ProposalStatus";
@@ -42,13 +42,19 @@ const ProposalPage: NextPage<{
 
   useEffect(() => {
     const fetchVotes = async () => {
-      if (!account) return;
-      const req = await fetch(`http://localhost:3000/api/votes/${proposalId}`, {
-        method: "GET",
-      });
-      console.log(req);
-      const res = await req.json();
+      const votesFromAPI = await fetch(
+        `http://localhost:3000/api/votes/${proposalId}`,
+        {
+          method: "GET",
+        }
+      );
+      const res = await votesFromAPI.json();
       setVotes(res);
+      if (!account) {
+        setHasVoted(false);
+        setCanVote(false);
+        return;
+      }
       const hasVoted =
         res.filter((vote: Vote) => {
           return vote.address === account.address;
@@ -66,7 +72,6 @@ const ProposalPage: NextPage<{
         account.address !== undefined &&
         eligibilityCheck.canVote &&
         !hasVoted;
-
       setCanVote(tmpCanVote);
     };
 
@@ -95,6 +100,13 @@ const ProposalPage: NextPage<{
     });
     console.log("post", req.body);
   };
+
+  const voteElegibilityText = useMemo(() => {
+    if (!account) return "Connect wallet to vote.";
+    if (hasVoted) return "You have already voted";
+    if (!canVote) return "You're not eligible to vote.";
+    return "Cast your vote";
+  }, [account, hasVoted, canVote]);
 
   return (
     <div className="flex items-stretch h-min-full h-full w-full overflow-hidden">
@@ -129,29 +141,35 @@ const ProposalPage: NextPage<{
           </p>
           <div className="flex flex-col w-full items-center gap-y-4">
             {options.map((option, index) => {
+              const numVotesForOption = votes.filter(
+                (vote) => vote.vote == option
+              ).length;
               return (
-                // <div className={styles.option}>
                 <div className="w-full" key={index}>
                   <div className="flex items-center justify-between">
                     <h2 className="capitalize">{option}</h2>
                     <span>
-                      {votes.filter((vote) => vote.vote == option).length} votes
+                      {numVotesForOption} vote
+                      {numVotesForOption > 1 || numVotesForOption == 0
+                        ? "s"
+                        : ""}
                     </span>
                   </div>
-                  <div className="h-2 rounded bg-slate-300 w-full"></div>
+                  <div className="relative mb-4">
+                    <div
+                      className={`absolute bg-blue-400 w-${
+                        numVotesForOption == votes.length && votes.length !== 0
+                          ? "full"
+                          : numVotesForOption + "/" + votes.length
+                      } z-10 h-2 rounded`}
+                    />
+                    <div className="absolute h-2 rounded bg-slate-300 w-full"></div>
+                  </div>
                 </div>
               );
             })}
           </div>
-          {canVote ? (
-            <p className="text-slate-400 mt-4 mb-2">Cast your vote</p>
-          ) : hasVoted ? (
-            <p className="text-slate-400 mt-4 mb-2">You have already voted.</p>
-          ) : (
-            <p className="text-slate-400 mt-4 mb-2">
-              You&apos;re not eligible to vote.
-            </p>
-          )}
+          <p className="text-slate-400 mt-4 mb-2">{voteElegibilityText}</p>
           {canVote &&
             options.map((option, index) => {
               return (

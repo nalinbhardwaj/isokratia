@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 export const Nav = ({ title }: { title: string }) => {
   const router = useRouter();
   return (
-    <nav className="flex justify-between items-center p-4">
+    <nav className="flex justify-between items-center p-4 relative">
       <span
         className={`font-medium ${
           router.pathname !== "/" && "hover:text-blue-500 cursor-pointer"

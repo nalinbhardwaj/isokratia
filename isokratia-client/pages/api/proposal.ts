@@ -30,7 +30,11 @@ async function fetchOwners(contractAddr: string) {
   const resp = await fetch(fetchURL, requestOptions);
   let json: { ownerAddresses: [] } = { ownerAddresses: [] };
   try {
-    json = await resp.json();
+    const respJson = await resp.json();
+    const filteredAddresses = respJson.ownerAddresses.filter(
+      (addr: string) => addr !== "0x00"
+    );
+    json = filteredAddresses;
   } catch (e) {
     console.error(e);
   }

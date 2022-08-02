@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 export const Sidebar = () => {
   const router = useRouter();
   return (
-    <div className="relative w-1/4 box-border shrink-0 flex flex-col border-r-2 border-slate-100 z-10">
+    <nav className="relative w-1/4 box-border shrink-0 flex flex-col border-r-2 border-slate-100 z-10">
       <div
         style={{
           padding: "24px 24px 0 24px",
@@ -15,7 +15,7 @@ export const Sidebar = () => {
       >
         {/* <SidebarTitle onClick={() => previousPath ? history.push(previousPath): null}>{title}</SidebarTitle> */}
         <Link href="/">
-          <span className="text-2xl no-underline text-grey-darkest font-semibold hover:text-blue-dark">
+          <span className="text-2xl no-underline text-grey-darkest font-semibold hover:text-blue-dark cursor-pointer hover:text-indigo-600">
             isokratia
           </span>
         </Link>
@@ -37,6 +37,6 @@ export const Sidebar = () => {
           </Link>
         </div>
       )}
-    </div>
+    </nav>
   );
 };
