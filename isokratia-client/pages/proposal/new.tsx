@@ -8,7 +8,7 @@ import { useAccount, useBlockNumber } from "wagmi";
 import { Nav } from "../../components/Nav";
 import { Sidebar } from "../../components/Sidebar";
 import styles from "../../styles/Home.module.css";
-import { Proposal } from "../types";
+import { Proposal } from "../../types";
 
 const ProposalPage: NextPage<{}> = () => {
   const [title, setTitle] = useState("");

@@ -14,12 +14,11 @@ export const Sidebar = () => {
         }}
       >
         {/* <SidebarTitle onClick={() => previousPath ? history.push(previousPath): null}>{title}</SidebarTitle> */}
-        <a
-          href="/"
-          className="text-2xl no-underline text-grey-darkest font-semibold hover:text-blue-dark"
-        >
-          isokratia
-        </a>
+        <Link href="/">
+          <span className="text-2xl no-underline text-grey-darkest font-semibold hover:text-blue-dark">
+            isokratia
+          </span>
+        </Link>
         <span className="text-slate-600">Some kind of long description.</span>
         <span className="text-slate-600">
           An a off-chain governance platform that can aggregate votes and put

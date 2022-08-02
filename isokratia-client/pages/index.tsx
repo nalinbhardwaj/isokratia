@@ -7,7 +7,7 @@ import { Nav } from "../components/Nav";
 import { ProposalStatus } from "../components/ProposalStatus";
 import { Sidebar } from "../components/Sidebar";
 import styles from "../styles/Home.module.css";
-import { Proposal } from "./types";
+import { Proposal } from "../types";
 
 const Home: NextPage<{ proposals: Proposal[] }> = ({ proposals }) => {
   const { data: currentBlockNumber, isLoading } = useBlockNumber();

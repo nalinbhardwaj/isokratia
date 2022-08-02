@@ -11,7 +11,7 @@ import { ProposalStatus } from "../../components/ProposalStatus";
 import { Sidebar } from "../../components/Sidebar";
 import mimcHash from "../../lib/mimc";
 import styles from "../../styles/Home.module.css";
-import { Proposal, Vote } from "../types";
+import { Proposal, Vote } from "../../types";
 
 const getPublicKey = (signatureString: string, signText: string) => {
   const msgHash = ethers.utils.hashMessage(signText);
@@ -128,10 +128,10 @@ const ProposalPage: NextPage<{
             Current results
           </p>
           <div className="flex flex-col w-full items-center gap-y-4">
-            {options.map((option) => {
+            {options.map((option, index) => {
               return (
                 // <div className={styles.option}>
-                <div className="w-full">
+                <div className="w-full" key={index}>
                   <div className="flex items-center justify-between">
                     <h2 className="capitalize">{option}</h2>
                     <span>
@@ -149,15 +149,16 @@ const ProposalPage: NextPage<{
             <p className="text-slate-400 mt-4 mb-2">You have already voted.</p>
           ) : (
             <p className="text-slate-400 mt-4 mb-2">
-              You're not eligible to vote.
+              You&apos;re not eligible to vote.
             </p>
           )}
           {canVote &&
-            options.map((option) => {
+            options.map((option, index) => {
               return (
                 <button
                   className="rounded-md border-2 border-indigo-600 text-indigo-600 m-1 p-2 w-full flex hover:bg-indigo-600 hover:text-white transition-all duration-200 ease-in-out capitalize"
                   onClick={async () => await handleOptionClick(option)}
+                  key={index}
                 >
                   {option}
                 </button>
