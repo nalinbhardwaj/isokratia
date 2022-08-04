@@ -3,7 +3,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAccount, useBlockNumber } from "wagmi";
 import { Nav } from "../../components/Nav";
 import { Sidebar } from "../../components/Sidebar";
@@ -16,9 +16,18 @@ const ProposalPage: NextPage<{}> = () => {
   const [contractAddress, setContractAddress] = useState("");
   const [endBlock, setEndBlock] = useState("");
   const [options, setOptions] = useState<string[]>(["Yes", "No"]);
+  const [canCreateProposal, setCanCreateProposal] = useState<boolean>(false);
   const [newOption, setNewOption] = useState<string>("");
   const { data: account } = useAccount();
   const { data: currentBlock } = useBlockNumber();
+
+  useEffect(() => {
+    if (!account) {
+      setCanCreateProposal(false);
+    } else {
+      setCanCreateProposal(true);
+    }
+  }, [account]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -185,9 +194,9 @@ const ProposalPage: NextPage<{}> = () => {
             <button
               className="rounded bg-indigo-600 p-4 w-full text-white mt-3 disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={handleCreateClick}
-              disabled={!account}
+              disabled={!canCreateProposal}
             >
-              {account ? "Create Proposal" : "Connect wallet"}
+              {canCreateProposal ? "Create Proposal" : "Connect wallet"}
             </button>
           </div>
         </main>

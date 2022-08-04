@@ -34,13 +34,29 @@ const ProposalPage: NextPage<{
   const [canVote, setCanVote] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [loadingVote, setLoadingVote] = useState(false);
+  const [votingStatus, setVotingStatus] = useState<string>("Loading...");
   const { data: account } = useAccount();
   const { signMessageAsync } = useSignMessage();
 
   function hasher(x: string | number) {
     return mimcHash(123)(BigInt(x)).toString();
   }
-  // console.log("proposal", proposal);
+
+  useEffect(() => {
+    if (!account) {
+      setVotingStatus("Connect wallet to vote");
+      return;
+    }
+    if (hasVoted) {
+      setVotingStatus("You have already voted");
+      return;
+    }
+    if (canVote) {
+      setVotingStatus("Cast your vote");
+      return;
+    }
+    setVotingStatus("You are not eligible to vote.");
+  }, [canVote, hasVoted, account]);
 
   useEffect(() => {
     const fetchVotes = async () => {
@@ -109,13 +125,6 @@ const ProposalPage: NextPage<{
     console.log("post", req.body);
   };
 
-  const voteElegibilityText = useMemo(() => {
-    if (!account) return "Connect wallet to vote.";
-    if (hasVoted) return "You have already voted";
-    if (!canVote) return "You're not eligible to vote.";
-    return "Cast your vote";
-  }, [account, hasVoted, canVote]);
-
   return (
     <div className="flex items-stretch h-min-full h-full w-full overflow-hidden">
       <Head>
@@ -176,7 +185,7 @@ const ProposalPage: NextPage<{
               );
             })}
           </div>
-          <p className="text-slate-400 mt-4 mb-2">{voteElegibilityText}</p>
+          <p className="text-slate-400 mt-4 mb-2">{votingStatus}</p>
           {loadingVote && <Loading colored />}
           {canVote &&
             !loadingVote &&
