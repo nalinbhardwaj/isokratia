@@ -48,7 +48,7 @@ async function createProposal(
   prop: Proposal,
   contractAddr: string,
   options: string[]
-) {
+): Promise<number> {
   const merkleLeaves = await fetchOwners(contractAddr);
   const leafs = merkleLeaves.map((addr: string) => hasher(addr));
   console.log("leafs", leafs);
@@ -88,6 +88,7 @@ async function createProposal(
     });
   }
   console.log("inserted everything");
+  return propModel.id;
 }
 
 export default async function handler(
@@ -104,8 +105,12 @@ export default async function handler(
       body.contractAddr,
       body.options
     );
-    createProposal(body.proposal, body.contractAddr, body.options);
-    res.json({ msg: "Proposal created" });
+    const proposalId = await createProposal(
+      body.proposal,
+      body.contractAddr,
+      body.options
+    );
+    res.json({ msg: "Proposal created", proposal_id: proposalId });
   } else if (req.method === "GET") {
     // Handle a GET request
     const proposals = await prisma.proposal.findMany();

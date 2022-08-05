@@ -1,17 +1,14 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ethers } from "ethers";
 import type { NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { Loading } from "../../components/Loading";
 import { Nav } from "../../components/Nav";
 import { ProposalStatus } from "../../components/ProposalStatus";
 import { Sidebar } from "../../components/Sidebar";
 import mimcHash from "../../lib/mimc";
-import styles from "../../styles/Home.module.css";
 import { Proposal, Vote } from "../../types";
 
 const getPublicKey = (signatureString: string, signText: string) => {
@@ -94,7 +91,7 @@ const ProposalPage: NextPage<{
     };
 
     fetchVotes();
-  }, [proposalId]);
+  }, [proposalId, account]);
 
   const handleOptionClick = async (option: string) => {
     console.log("ACCOUNT", account);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useAccount, useBlockNumber } from "wagmi";
+import { Loading } from "../../components/Loading";
 import { Nav } from "../../components/Nav";
 import { Sidebar } from "../../components/Sidebar";
 import styles from "../../styles/Home.module.css";
@@ -17,9 +18,12 @@ const ProposalPage: NextPage<{}> = () => {
   const [endBlock, setEndBlock] = useState("");
   const [options, setOptions] = useState<string[]>(["Yes", "No"]);
   const [canCreateProposal, setCanCreateProposal] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [newOption, setNewOption] = useState<string>("");
   const { data: account } = useAccount();
   const { data: currentBlock } = useBlockNumber();
+
+  const router = useRouter();
 
   useEffect(() => {
     if (!account) {
@@ -63,6 +67,7 @@ const ProposalPage: NextPage<{}> = () => {
   };
 
   const handleCreateClick = async () => {
+    setLoading(true);
     console.log(title, description, contractAddress);
     const req = await fetch("http://localhost:3000/api/proposal", {
       method: "POST",
@@ -77,6 +82,11 @@ const ProposalPage: NextPage<{}> = () => {
         options: options,
       }),
     });
+    if (req.status === 200) {
+      const res = await req.json();
+      setLoading(false);
+      router.push("/proposal/[id]", `/proposal/${res.proposal_id}`);
+    }
     console.log("post", req.body);
   };
 
@@ -192,10 +202,11 @@ const ProposalPage: NextPage<{}> = () => {
             </div>
 
             <button
-              className="rounded bg-indigo-600 p-4 w-full text-white mt-3 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="rounded bg-indigo-600 p-4 w-full text-white mt-3 disabled:opacity-60 disabled:cursor-not-allowed items-center"
               onClick={handleCreateClick}
               disabled={!canCreateProposal}
             >
+              {loading && <Loading />}
               {canCreateProposal ? "Create Proposal" : "Connect wallet"}
             </button>
           </div>
