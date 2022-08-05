@@ -202,9 +202,9 @@ const ProposalPage: NextPage<{}> = () => {
             </div>
 
             <button
-              className="rounded bg-indigo-600 p-4 w-full text-white mt-3 disabled:opacity-60 disabled:cursor-not-allowed items-center"
+              className="flex rounded bg-indigo-600 p-4 w-full text-white mt-3 disabled:opacity-60 disabled:cursor-not-allowed items-center justify-center"
               onClick={handleCreateClick}
-              disabled={!canCreateProposal}
+              disabled={!canCreateProposal || loading}
             >
               {loading && <Loading />}
               {canCreateProposal ? "Create Proposal" : "Connect wallet"}

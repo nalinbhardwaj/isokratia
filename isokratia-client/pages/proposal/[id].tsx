@@ -91,7 +91,7 @@ const ProposalPage: NextPage<{
     };
 
     fetchVotes();
-  }, [proposalId, account]);
+  }, [proposalId, account, hasVoted]);
 
   const handleOptionClick = async (option: string) => {
     console.log("ACCOUNT", account);
