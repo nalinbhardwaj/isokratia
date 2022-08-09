@@ -4,3 +4,5 @@ input
 !input/blank-proof.json
 prover-input
 prover-output
+python/isokratia
+python/__pycache__

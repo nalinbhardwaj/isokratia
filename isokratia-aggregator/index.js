@@ -24,9 +24,10 @@ function getPastSnark(proposal, option) {
 }
 
 function writeSnark(proposal, option, proof, voters) {
-  const proofFileName = `input/${proposal.id}-${option}-proof.json`;
+  fs.copyFileSync(`prover-output/proof_${proposal.id}-${option}.json`,
+                  `input/${proposal.id}-${option}-proof.json`);
+  
   const voterFileName = `input/${proposal.id}-${option}-voters.json`;
-  fs.writeFileSync(proofFileName, JSON.stringify(proof));
   fs.writeFileSync(voterFileName, JSON.stringify(voters));
 }
 
@@ -120,7 +121,7 @@ function commitmentComputer(
   );
 }
 
-function runProver(proposal, option, vote, input) {
+function runProver(proposal, option, vote, input, allVoters) {
   console.log("processing prover run", proposal, option, vote, input);
   const JSONdata = JSON.stringify(input);
   fs.writeFileSync(`prover-input/${proposal.id}-${option}.json`, JSONdata);
@@ -128,12 +129,16 @@ function runProver(proposal, option, vote, input) {
   console.log("running prover");
   shell.exec(`./gen-proof.sh ${proposal.id}-${option}`);
   console.log("generated proof");
+  
+  const voterFileName = `input/${proposal.id}-${option}-voters.json`;
+  fs.writeFileSync(voterFileName, JSON.stringify(allVoters));
 }
 
 function processVote(proposal, option, vote, pastProof, pastVoters) {
-  console.log("processing vote", proposal, option, vote, pastProof, pastVoters);
-  const msg =
+  const msg_noPrefix =
     "isokratia vote " + vote.vote + " for proposal " + vote.proposal_id;
+  const msg = "\x19Ethereum Signed Message:\n" + msg_noPrefix.length.toString() + msg_noPrefix;
+  console.log("processing vote", proposal, option, vote, pastProof, pastVoters, msg);
   const msghash_bigint = Uint8Array_to_bigint(keccak256(msg));
   const msghash_array = bigint_to_array(64, 4, msghash_bigint);
   const parsedPubkey = parsePubkey(vote.pubkey);
@@ -197,17 +202,22 @@ function processVote(proposal, option, vote, pastProof, pastVoters) {
     ...pastProof,
   };
 
-  runProver(proposal, option, vote, nextInput);
+  const newVoters = pastVoters.concat([vote.address]);
+
+  runProver(proposal, option, vote, nextInput, newVoters);
 }
 
-async function processProposalOption(proposal, option) {
+async function processProposalOption(proposalStub, option) {
+  console.log('proposalStub', proposalStub);
+  const proposalFetch = await (await fetch(`http://localhost:3001/api/proposal/${proposalStub.id}?includeLeafs=true`)).json();
+  const proposal = {...proposalFetch.proposal, merkleLeaves: proposalFetch.merkleLeaves, options: proposalFetch.options};
   console.log("proposal option", proposal, option);
-  const req = await fetch(`http://localhost:3000/api/votes/${proposal.id}`);
+  const req = await fetch(`http://localhost:3001/api/votes/${proposal.id}`);
   const allCurrentVotes = await req.json();
   const { pastProof, pastVoters } = getPastSnark(proposal, option);
 
   for (const voter of allCurrentVotes) {
-    if (!(voter.address in pastVoters)) {
+    if (!pastVoters.includes(voter.address) && voter.vote == option) {
       processVote(proposal, option, voter, pastProof, pastVoters);
       return true;
     }
@@ -216,7 +226,7 @@ async function processProposalOption(proposal, option) {
 }
 
 async function processAll() {
-  const res = await fetch(`http://localhost:3000/api/proposal`);
+  const res = await fetch(`http://localhost:3001/api/proposal`);
   const proposals = await res.json();
 
   for (const proposal of proposals) {

@@ -28,7 +28,7 @@ from py_ecc.fields import (
 )
 from py_ecc.bn128 import (
     bn128_curve as curve,
-    bn128_pairing as pairingw
+    bn128_pairing as pairing
 )
 import json
 import sys
@@ -39,11 +39,9 @@ if len(sys.argv) != 2:
     exit(1)
 
 input_filename = sys.argv[1]
-with open("../preinput/" + input_filename, 'r') as input_file:
+with open("../prover-output/" + input_filename, 'r') as input_file:
     input_data = input_file.read()
-input_json = json.loads(input_data)
-proof = input_json["proof"]
-pubInputs = input_json["pubInputs"]
+proof = json.loads(input_data)
 
 
 with open('vkey.json', 'r') as vkey_file:
@@ -128,25 +126,7 @@ proofParameters = {
 
 print("proofParameters", proofParameters)
 
-# with open('public.json', 'r') as public_file:
-#     public_data = public_file.read()
-# pubInputs = json.loads(public_data)
-
-# pubParameters  = {
-#     "pubInput": [],
-# }
-# for pubInput in pubInputs:
-#     pubParameters["pubInput"].append(int(pubInput))
-
-# print("pubParameters", pubParameters)
-
 fullCircomInput = {**inputParameters, **proofParameters}
-
-fullCircomInput["semiPublicCommitment"] = "7138597452374049843442357986628673314690363139209617000292486089713270058062"
-fullCircomInput["degree"] = int(pubParameters[1]) + 1
-fullCircomInput["originator"] = pubParameters[2]
-
 
 with open('../input/' + input_filename, 'w') as outfile:
     json.dump(fullCircomInput, outfile)
-
