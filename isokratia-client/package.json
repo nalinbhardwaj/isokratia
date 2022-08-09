@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "refreshABI": "forge inspect ../isokratia-contracts/src/Isokratia.sol:Isokratia abi > lib/isokratia.abi.json",
     "lint": "next lint"
   },
   "dependencies": {

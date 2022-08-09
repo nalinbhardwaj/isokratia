@@ -4,12 +4,43 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { useAccount, useBlockNumber } from "wagmi";
+import { useAccount, useBlockNumber, useContractWrite } from "wagmi";
 import { Loading } from "../../components/Loading";
 import { Nav } from "../../components/Nav";
 import { Sidebar } from "../../components/Sidebar";
-import styles from "../../styles/Home.module.css";
-import { Proposal } from "../../types";
+import contractInterface from "../../lib/isokratia.abi.json";
+import keccak256 from "keccak256";
+
+const contractConfig = {
+  addressOrName: "0x00466D719218D405073154a2Eaab8B0a6d10252e",
+  contractInterface,
+  chainId: 5,
+};
+
+// bigendian
+function Uint8Array_to_bigint(x: Uint8Array) {
+  var ret = 0n;
+  for (var idx = 0; idx < x.length; idx++) {
+    ret = ret * 256n;
+    ret = ret + BigInt(x[idx]);
+  }
+  return ret;
+}
+
+function bigint_to_array(n: number, k: number, x: bigint) {
+  let mod = 1n;
+  for (var idx = 0; idx < n; idx++) {
+    mod = mod * 2n;
+  }
+
+  let ret = [];
+  var x_temp = x;
+  for (var idx = 0; idx < k; idx++) {
+    ret.push(x_temp % mod);
+    x_temp = x_temp / mod;
+  }
+  return ret;
+}
 
 const ProposalPage: NextPage<{}> = () => {
   const [title, setTitle] = useState("");
@@ -22,6 +53,12 @@ const ProposalPage: NextPage<{}> = () => {
   const [newOption, setNewOption] = useState<string>("");
   const { data: account } = useAccount();
   const { data: currentBlock } = useBlockNumber();
+  const {
+    data: createData,
+    write: createProposalOnChain,
+    isLoading: isCreateLoading,
+    isSuccess: isCreateStarted,
+  } = useContractWrite(contractConfig, "createProposal");
 
   const router = useRouter();
 
@@ -82,12 +119,42 @@ const ProposalPage: NextPage<{}> = () => {
         options: options,
       }),
     });
-    if (req.status === 200) {
-      const res = await req.json();
-      setLoading(false);
-      router.push("/proposal/[id]", `/proposal/${res.proposal_id}`);
-    }
-    console.log("post", req.body);
+
+    if (req.status !== 200) return;
+
+    const res = await req.json();
+
+    const proposalDetails = await (
+      await fetch(`http://localhost:3000/api/proposal/${res.proposal_id}`)
+    ).json();
+
+    const optionTextHash = proposalDetails.options.map((option: string) => {
+      const msg_noPrefix =
+        "isokratia vote " +
+        option +
+        " for proposal " +
+        proposalDetails.proposal.id;
+      const msg =
+        "\x19Ethereum Signed Message:\n" +
+        msg_noPrefix.length.toString() +
+        msg_noPrefix;
+      const msghash_bigint = Uint8Array_to_bigint(keccak256(msg));
+      const msghash_array = bigint_to_array(64, 4, msghash_bigint);
+      return msghash_array.map((x) => x.toString());
+    });
+
+    const args = [
+      proposalDetails.proposal.id.toString(),
+      proposalDetails.proposal.endBlock.toString(),
+      proposalDetails.proposal.merkleRoot.toString(),
+      optionTextHash,
+      proposalDetails.options,
+    ];
+    console.log("args", args);
+    createProposalOnChain({ args });
+
+    setLoading(false);
+    router.push("/proposal/[id]", `/proposal/${proposalDetails.proposal.id}`);
   };
 
   return (
