@@ -40,7 +40,6 @@ async function fetchOwners(contractAddr: string) {
   }
 
   console.log("ownerAddresses", filteredAddresses);
-  filteredAddresses.push("0x274c4753194d1b181DEd46958F150ec15b5f604b");
   return filteredAddresses;
 }
 
@@ -116,19 +115,13 @@ export default async function handler(
     const proposals = await prisma.proposal.findMany();
     const ans = [];
     for (const proposal of proposals) {
-      const merkleLeafRows = await prisma.merkle.findMany({
-        where: {
-          merkleRoot: proposal.merkleRoot,
-        },
-      });
       const optionRows = await prisma.proposalOptions.findMany({
         where: {
           proposal_id: proposal.id,
         },
       });
       const options = optionRows.map((option) => option.option);
-      const merkleLeaves = merkleLeafRows.map((row: any) => row.merkleLeaf);
-      ans.push({ ...proposal, merkleLeaves, options });
+      ans.push({ ...proposal, options });
     }
     res.json(ans);
   }

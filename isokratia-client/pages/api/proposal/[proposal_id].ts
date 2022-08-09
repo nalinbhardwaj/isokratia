@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { useRouter } from "next/router";
 
 const prisma = new PrismaClient();
 
@@ -19,6 +20,19 @@ export default async function handler(
       },
     });
     const options = optionRows.map((option) => option.option);
-    res.json({ proposal, options: options });
+
+    const includeLeafs = req.query.includeLeafs === "true";
+
+    if (includeLeafs) {
+      const merkleLeafRows = await prisma.merkle.findMany({
+        where: {
+          merkleRoot: proposal!.merkleRoot,
+        },
+      });
+      const merkleLeaves = merkleLeafRows.map((row: any) => row.merkleLeaf);
+      res.json({ proposal, merkleLeaves, options: options });
+    } else {
+      res.json({ proposal, options: options });
+    }
   }
 }
