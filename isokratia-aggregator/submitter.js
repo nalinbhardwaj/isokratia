@@ -45,5 +45,3 @@ export async function submit(proposalId, option) {
 function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
-
-submit(35, "Yes");

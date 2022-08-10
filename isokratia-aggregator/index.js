@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 import keccak256 from "keccak256";
 import shell from "shelljs";
 import { MerkleTree } from "fixed-merkle-tree";
-import { submit } from "./submit.js";
+import { submit } from "./submitter.js";
 
 function getPastSnark(proposal, option) {
   const proofFileName = `input/${proposal.id}-${option}-proof.json`;
@@ -220,10 +220,10 @@ function processVote(proposal, option, vote, pastProof, pastVoters) {
 
 async function processProposalOption(proposalStub, option) {
   console.log('proposalStub', proposalStub);
-  const proposalFetch = await (await fetch(`http://localhost:3001/api/proposal/${proposalStub.id}?includeLeafs=true`)).json();
+  const proposalFetch = await (await fetch(`https://isokratia.xyz/api/proposal/${proposalStub.id}?includeLeafs=true`)).json();
   const proposal = {...proposalFetch.proposal, merkleLeaves: proposalFetch.merkleLeaves, options: proposalFetch.options};
   console.log("proposal option", proposal, option);
-  const req = await fetch(`http://localhost:3001/api/votes/${proposal.id}`);
+  const req = await fetch(`https://isokratia.xyz/api/votes/${proposal.id}`);
   const allCurrentVotes = await req.json();
   const { pastProof, pastVoters } = getPastSnark(proposal, option);
 
@@ -237,7 +237,7 @@ async function processProposalOption(proposalStub, option) {
 }
 
 async function processAll() {
-  const res = await fetch(`http://localhost:3001/api/proposal`);
+  const res = await fetch(`https://isokratia.xyz/api/proposal`);
   const proposals = await res.json();
 
   for (const proposal of proposals) {
