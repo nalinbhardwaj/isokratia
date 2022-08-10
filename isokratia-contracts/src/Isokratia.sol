@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "./Verifier.sol";
 import "./LibMIMC.sol";
+import {console} from "forge-std/console.sol";
 
 contract Isokratia is Verifier {
     uint256 constant k1 = 4;
@@ -49,21 +50,21 @@ contract Isokratia is Verifier {
         uint256[1] memory _input) public {
         require(verifyProof(_a, _b, _c, _input), "Bad proof");
 
-        uint256[] memory commitmentInputs = new uint256[](3 + k1 + 6 * 2 * k2 + 3 * 2 * 2 * k2);
+        uint256[3 + k1 + 6 * 2 * k2 + 3 * 2 * 2 * k2] memory commitmentInputs;
         commitmentInputs[0] = voteCount;
         commitmentInputs[1] = proposals[proposalId].eligibleRoot;
         commitmentInputs[2] = voterRoot;
-        uint256 mimcIdx = 3;
+        uint256 hasherIdx = 3;
         for (uint256 i = 0;i < k1;i++) {
-            commitmentInputs[mimcIdx] = proposals[proposalId].options[option][i];
-            mimcIdx++;
+            commitmentInputs[hasherIdx] = proposals[proposalId].options[option][i];
+            hasherIdx++;
         }
 
         for (uint256 i = 0;i < 6;i++) {
             for (uint256 j = 0;j < 2;j++) {
                 for (uint256 idx = 0;idx < k2;idx++) {
-                    commitmentInputs[mimcIdx] = negalfa1xbeta2[i][j][idx];
-                    mimcIdx++;
+                    commitmentInputs[hasherIdx] = negalfa1xbeta2[i][j][idx];
+                    hasherIdx++;
                 }
             }
         }
@@ -71,8 +72,8 @@ contract Isokratia is Verifier {
         for (uint256 i = 0;i < 2;i++) {
             for (uint256 j = 0;j < 2;j++) {
                 for (uint256 idx = 0;idx < k2;idx++) {
-                    commitmentInputs[mimcIdx] = gamma2[i][j][idx];
-                    mimcIdx++;
+                    commitmentInputs[hasherIdx] = gamma2[i][j][idx];
+                    hasherIdx++;
                 }
             }
         }
@@ -80,8 +81,8 @@ contract Isokratia is Verifier {
         for (uint256 i = 0;i < 2;i++) {
             for (uint256 j = 0;j < 2;j++) {
                 for (uint256 idx = 0;idx < k2;idx++) {
-                    commitmentInputs[mimcIdx] = delta2[i][j][idx];
-                    mimcIdx++;
+                    commitmentInputs[hasherIdx] = delta2[i][j][idx];
+                    hasherIdx++;
                 }
             }
         }
@@ -89,13 +90,14 @@ contract Isokratia is Verifier {
         for (uint256 i = 0;i < 2;i++) {
             for (uint256 j = 0;j < 2;j++) {
                 for (uint256 idx = 0;idx < k2;idx++) {
-                    commitmentInputs[mimcIdx] = IC[i][j][idx];
-                    mimcIdx++;
+                    commitmentInputs[hasherIdx] = IC[i][j][idx];
+                    hasherIdx++;
                 }
             }
         }
 
-        uint256 hash = LibMIMC.mimcSponge(commitmentInputs, 1, 220, 123)[0];
+        uint256 hash = uint256(sha256(abi.encode(commitmentInputs))) >> 6;
+        console.log('hash: ', hash);
         require(_input[0] == hash, "Bad public commitment");
 
         proposals[proposalId].voteCount[option] = voteCount;
