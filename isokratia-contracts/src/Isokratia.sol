@@ -48,6 +48,7 @@ contract Isokratia is Verifier {
         uint256[2][2] memory _b,
         uint256[2] memory _c,
         uint256[1] memory _input) public {
+        require(block.number <= proposals[proposalId].endBlock, "Proposal has expired");
         require(verifyProof(_a, _b, _c, _input), "Bad proof");
 
         uint256[3 + k1 + 6 * 2 * k2 + 3 * 2 * 2 * k2] memory commitmentInputs;
@@ -100,7 +101,10 @@ contract Isokratia is Verifier {
         console.log('hash: ', hash);
         require(_input[0] == hash, "Bad public commitment");
 
-        proposals[proposalId].voteCount[option] = voteCount;
+        if (voteCount > proposals[proposalId].voteCount[option]) {
+            proposals[proposalId].voteCount[option] = voteCount;
+            emit AggregateCreated(proposalId, option, voteCount);
+        }
     }
 
     constructor(
