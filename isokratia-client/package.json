@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "refreshABI": "forge inspect ../isokratia-contracts/src/Isokratia.sol:Isokratia abi > lib/isokratia.abi.json",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@noble/secp256k1": "^1.6.0",

@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, proposalOptions } from "@prisma/client";
 import { ethers } from "ethers";
 import MerkleTree from "fixed-merkle-tree";
 import type { NextApiRequest, NextApiResponse } from "next";
