@@ -58,7 +58,7 @@ const ProposalPage: NextPage<{
   useEffect(() => {
     const fetchVotes = async () => {
       const votesFromAPI = await fetch(
-        `http://localhost:3000/api/votes/${proposalId}`,
+        `https://isokratia.xyz/api/votes/${proposalId}`,
         {
           method: "GET",
         }
@@ -76,7 +76,7 @@ const ProposalPage: NextPage<{
         }).length > 0;
       setHasVoted(hasVoted);
       const canVote = await fetch(
-        `http://localhost:3000/api/proposal-eligible?proposal_id=${proposalId}&address=${account.address}`,
+        `https://isokratia.xyz/api/proposal-eligible?proposal_id=${proposalId}&address=${account.address}`,
         {
           method: "GET",
         }
@@ -104,7 +104,7 @@ const ProposalPage: NextPage<{
 
     const recoveredPubKey = getPublicKey(data, message);
 
-    const req = await fetch(`http://localhost:3000/api/votes/${proposalId}`, {
+    const req = await fetch(`https://isokratia.xyz/api/votes/${proposalId}`, {
       method: "POST",
       body: JSON.stringify({
         address: account.address,
@@ -207,7 +207,7 @@ const ProposalPage: NextPage<{
 export async function getServerSideProps(context: any) {
   // Fetch data from external API
   const proposalId = Number(context.query.id);
-  const res = await fetch(`http://localhost:3000/api/proposal/${proposalId}`);
+  const res = await fetch(`https://isokratia.xyz/api/proposal/${proposalId}`);
   console.log(res);
   const proposal = await res.json();
   console.log("PROPOSAL", proposal.options);

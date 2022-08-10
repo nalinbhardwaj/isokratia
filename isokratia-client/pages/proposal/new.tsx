@@ -106,7 +106,7 @@ const ProposalPage: NextPage<{}> = () => {
   const handleCreateClick = async () => {
     setLoading(true);
     console.log(title, description, contractAddress);
-    const req = await fetch("http://localhost:3000/api/proposal", {
+    const req = await fetch("https://isokratia.xyz/api/proposal", {
       method: "POST",
       body: JSON.stringify({
         proposal: {
@@ -125,7 +125,7 @@ const ProposalPage: NextPage<{}> = () => {
     const res = await req.json();
 
     const proposalDetails = await (
-      await fetch(`http://localhost:3000/api/proposal/${res.proposal_id}`)
+      await fetch(`https://isokratia.xyz/api/proposal/${res.proposal_id}`)
     ).json();
 
     const optionTextHash = proposalDetails.options.map((option: string) => {
