@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 import keccak256 from "keccak256";
 import shell from "shelljs";
 import { MerkleTree } from "fixed-merkle-tree";
+import { submit } from "./submit.js";
 
 function getPastSnark(proposal, option) {
   const proofFileName = `input/${proposal.id}-${option}-proof.json`;
@@ -21,14 +22,6 @@ function getPastSnark(proposal, option) {
     const voterData = [];
     return { pastProof: proofData, pastVoters: voterData };
   }
-}
-
-function writeSnark(proposal, option, proof, voters) {
-  fs.copyFileSync(`prover-output/proof_${proposal.id}-${option}.json`,
-                  `input/${proposal.id}-${option}-proof.json`);
-  
-  const voterFileName = `input/${proposal.id}-${option}-voters.json`;
-  fs.writeFileSync(voterFileName, JSON.stringify(voters));
 }
 
 // bigendian
@@ -109,7 +102,7 @@ function commitmentComputer(
   msghash,
   proof
 ) {
-  return mimcHasher(
+  const commitmentInputsAny = [
     voteCount,
     eligibleRoot,
     voterRoot,
@@ -117,8 +110,18 @@ function commitmentComputer(
     ...proof.negalfa1xbeta2.flat(20),
     ...proof.gamma2.flat(20),
     ...proof.delta2.flat(20),
-    ...proof.IC.flat(20)
-  );
+    ...proof.IC.flat(20),
+  ];
+  const commitmentInputs = commitmentInputsAny.map((x) => x.toString());
+  const commitmentInputTypes = [];
+  for (var idx = 0; idx < commitmentInputs.length; idx++)
+    commitmentInputTypes.push("uint256");
+
+  return BigNumber.from(
+    ethers.utils.soliditySha256(commitmentInputTypes, commitmentInputs)
+  )
+    .shr(6)
+    .toString();
 }
 
 function runProver(proposal, option, vote, input, allVoters) {
@@ -132,6 +135,14 @@ function runProver(proposal, option, vote, input, allVoters) {
   
   const voterFileName = `input/${proposal.id}-${option}-voters.json`;
   fs.writeFileSync(voterFileName, JSON.stringify(allVoters));
+  
+  const calldataFileName = `prover-output/${proposal.id}-${option}-calldata.json`;
+  const preCalldata = JSON.stringify([proposal.id.toString(), option, input.voteCount.toString(), input.voterRoot])
+  const proofCalldata = fs.readFileSync(calldataFileName);
+  const fullCallData = preCalldata.slice(0, preCalldata.length - 1) + "," + proofCalldata + "]";
+  fs.writeFileSync(calldataFileName, fullCallData);
+
+  submit(proposal.id, option);
 }
 
 function processVote(proposal, option, vote, pastProof, pastVoters) {

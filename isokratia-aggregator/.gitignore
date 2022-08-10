@@ -6,3 +6,4 @@ prover-input
 prover-output
 python/isokratia
 python/__pycache__
+.env

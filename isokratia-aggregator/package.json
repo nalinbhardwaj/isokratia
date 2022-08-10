@@ -6,9 +6,13 @@
   "type": "module",
   "dependencies": {
     "big-integer": "^1.6.51",
+    "ethers": "^5.6.9",
     "fixed-merkle-tree": "^0.7.3",
     "keccak256": "^1.0.6",
     "node-fetch": "^3.2.10",
     "shelljs": "^0.8.5"
+  },
+  "scripts": {
+    "refreshABI": "forge inspect ../isokratia-contracts/src/Isokratia.sol:Isokratia abi > isokratia.abi.json"
   }
 }

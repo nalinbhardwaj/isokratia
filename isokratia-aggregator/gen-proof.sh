@@ -6,6 +6,4 @@ cd ..
 cd .. && cd python && source isokratia/bin/activate
 python3 script.py "$1"-proof.json
 cd ..
-echo '[' > prover-output/"$1"-calldata.json
-npx snarkjs zkesc prover-output/"$1"-public.json prover-output/"$1"-proof.json >> prover-output/"$1"-calldata.json
-echo ']' >> prover-output/"$1"-calldata.json
+npx snarkjs zkesc prover-output/"$1"-public.json prover-output/"$1"-proof.json > prover-output/"$1"-calldata.json
