@@ -17,7 +17,7 @@ export async function submit(proposalId, option) {
   const contractWithSigner = contract.connect(ethWallet);
 
   const argData = JSON.parse(fs.readFileSync(`prover-output/${proposalId}-${option}-calldata.json`));
-  const txOptions = { gasLimit: 25000000 };
+  const txOptions = { gasLimit: 2000000 };
 
   const tx = await contractWithSigner.functions["postAggregation"](
     ...argData,
