@@ -2,15 +2,13 @@
 pragma solidity ^0.8.13;
 
 import "./Verifier.sol";
-import "./LibMIMC.sol";
-import {console} from "forge-std/console.sol";
 
 contract Isokratia is Verifier {
     uint256 constant k1 = 4;
     uint256 constant k2 = 6;
 
     event ProposalCreated(address creator, uint256 proposalId, uint256 endBlock);
-    event AggregateCreated(uint256 proposalId, uint256 option, uint256 voteCount);
+    event AggregateCreated(uint256 proposalId, string option, uint256 voteCount);
 
     struct Proposal {
         uint256 id;
@@ -31,6 +29,7 @@ contract Isokratia is Verifier {
         uint256 eligibleRoot,
         uint64[k1][] memory options,
         string[] memory optionText) public {
+        require(proposals[proposalId].id == 0, "Proposal already exists");
         proposals[proposalId].id = proposalId;
         proposals[proposalId].endBlock = endBlock;
         proposals[proposalId].eligibleRoot = eligibleRoot;
@@ -98,7 +97,6 @@ contract Isokratia is Verifier {
         }
 
         uint256 hash = uint256(sha256(abi.encode(commitmentInputs))) >> 6;
-        console.log('hash: ', hash);
         require(_input[0] == hash, "Bad public commitment");
 
         if (voteCount > proposals[proposalId].voteCount[option]) {
