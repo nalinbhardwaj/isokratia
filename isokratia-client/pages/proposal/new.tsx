@@ -12,7 +12,7 @@ import contractInterface from "../../lib/isokratia.abi.json";
 import keccak256 from "keccak256";
 
 const contractConfig = {
-  addressOrName: "0x00466D719218D405073154a2Eaab8B0a6d10252e",
+  addressOrName: "0x55B32d6bCED340d736b5402451cb5E4a2Fed28DF",
   contractInterface,
   chainId: 5,
 };
