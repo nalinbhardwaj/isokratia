@@ -6,6 +6,7 @@ import { useBlockNumber } from "wagmi";
 import { Nav } from "../components/Nav";
 import { ProposalStatus } from "../components/ProposalStatus";
 import { Sidebar } from "../components/Sidebar";
+import { baseURL } from "../lib/misc";
 import styles from "../styles/Home.module.css";
 import { Proposal } from "../types";
 
@@ -64,7 +65,7 @@ const Home: NextPage<{ proposals: Proposal[] }> = ({ proposals }) => {
 // This gets called on every request
 export async function getServerSideProps() {
   // Fetch data from external API
-  const res = await fetch(`https://isokratia.xyz/api/basic-proposal`);
+  const res = await fetch(`${baseURL}/api/basic-proposal`);
   const proposals = await res.json();
 
   // Pass data to the page via props

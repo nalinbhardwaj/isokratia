@@ -9,6 +9,7 @@ import { Nav } from "../../components/Nav";
 import { ProposalStatus } from "../../components/ProposalStatus";
 import { Sidebar } from "../../components/Sidebar";
 import mimcHash from "../../lib/mimc";
+import { baseURL } from "../../lib/misc";
 import { Proposal, Vote } from "../../types";
 
 const getPublicKey = (signatureString: string, signText: string) => {
@@ -57,12 +58,9 @@ const ProposalPage: NextPage<{
 
   useEffect(() => {
     const fetchVotes = async () => {
-      const votesFromAPI = await fetch(
-        `https://isokratia.xyz/api/votes/${proposalId}`,
-        {
-          method: "GET",
-        }
-      );
+      const votesFromAPI = await fetch(`${baseURL}/api/votes/${proposalId}`, {
+        method: "GET",
+      });
       const res = await votesFromAPI.json();
       setVotes(res);
       if (!account) {
@@ -76,7 +74,7 @@ const ProposalPage: NextPage<{
         }).length > 0;
       setHasVoted(hasVoted);
       const canVote = await fetch(
-        `https://isokratia.xyz/api/proposal-eligible?proposal_id=${proposalId}&address=${account.address}`,
+        `${baseURL}/api/proposal-eligible?proposal_id=${proposalId}&address=${account.address}`,
         {
           method: "GET",
         }
@@ -104,7 +102,7 @@ const ProposalPage: NextPage<{
 
     const recoveredPubKey = getPublicKey(data, message);
 
-    const req = await fetch(`https://isokratia.xyz/api/votes/${proposalId}`, {
+    const req = await fetch(`${baseURL}/api/votes/${proposalId}`, {
       method: "POST",
       body: JSON.stringify({
         address: account.address,
@@ -207,7 +205,7 @@ const ProposalPage: NextPage<{
 export async function getServerSideProps(context: any) {
   // Fetch data from external API
   const proposalId = Number(context.query.id);
-  const res = await fetch(`https://isokratia.xyz/api/proposal/${proposalId}`);
+  const res = await fetch(`${baseURL}/api/proposal/${proposalId}`);
   console.log(res);
   const proposal = await res.json();
   console.log("PROPOSAL", proposal.options);

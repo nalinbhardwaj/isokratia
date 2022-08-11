@@ -10,6 +10,7 @@ import { Nav } from "../../components/Nav";
 import { Sidebar } from "../../components/Sidebar";
 import contractInterface from "../../lib/isokratia.abi.json";
 import keccak256 from "keccak256";
+import { baseURL } from "../../lib/misc";
 
 const contractConfig = {
   addressOrName: "0x55B32d6bCED340d736b5402451cb5E4a2Fed28DF",
@@ -106,7 +107,7 @@ const ProposalPage: NextPage<{}> = () => {
   const handleCreateClick = async () => {
     setLoading(true);
     console.log(title, description, contractAddress);
-    const req = await fetch("https://isokratia.xyz/api/proposal", {
+    const req = await fetch(`${baseURL}/api/proposal`, {
       method: "POST",
       body: JSON.stringify({
         proposal: {
@@ -125,7 +126,7 @@ const ProposalPage: NextPage<{}> = () => {
     const res = await req.json();
 
     const proposalDetails = await (
-      await fetch(`https://isokratia.xyz/api/proposal/${res.proposal_id}`)
+      await fetch(`${baseURL}/api/proposal/${res.proposal_id}`)
     ).json();
 
     const optionTextHash = proposalDetails.options.map((option: string) => {
@@ -217,7 +218,11 @@ const ProposalPage: NextPage<{}> = () => {
 
           <div className="mb-6 w-10/12">
             <label className="block mb-2 text-sm font-medium">
-              Contract Address
+              NFT Contract Address
+            </label>
+            <label className="block mb-2 text-sm font-light">
+              Enter a mainnet NFT collection contract address to use for merkle
+              root generation.
             </label>
             <input
               type="text"
