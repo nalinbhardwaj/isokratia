@@ -36,7 +36,7 @@ export const Sidebar = () => {
         </span>
         <br />
         <a
-          href="https://0xparc.org/blog/isokratia"
+          href="https://nibnalin.me/dust-nib/isokratia.html"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -54,7 +54,7 @@ export const Sidebar = () => {
           </span>
         </a>
         <a
-          href="https://goerli.etherscan.io/address/0x55b32d6bced340d736b5402451cb5e4a2fed28df"
+          href="https://goerli.etherscan.io/address/0x8ff131B05aBE019b4Dc1cf29ABEc51083389b0B8"
           target="_blank"
           rel="noopener noreferrer"
         >

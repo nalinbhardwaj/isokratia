@@ -13,7 +13,7 @@ import keccak256 from "keccak256";
 import { baseURL } from "../../lib/misc";
 
 const contractConfig = {
-  addressOrName: "0x55B32d6bCED340d736b5402451cb5E4a2Fed28DF",
+  addressOrName: "0x8ff131B05aBE019b4Dc1cf29ABEc51083389b0B8",
   contractInterface,
   chainId: 5,
 };
@@ -63,13 +63,13 @@ const ProposalPage: NextPage<{}> = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (!account) {
-      setCanCreateProposal(false);
-    } else {
-      setCanCreateProposal(true);
-    }
-  }, [account]);
+  // useEffect(() => {
+  //   if (!account) {
+  //     setCanCreateProposal(false);
+  //   } else {
+  //     setCanCreateProposal(true);
+  //   }
+  // }, [account]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -279,7 +279,9 @@ const ProposalPage: NextPage<{}> = () => {
               disabled={!canCreateProposal || loading}
             >
               {loading && <Loading />}
-              {canCreateProposal ? "Create Proposal" : "Connect wallet"}
+              {canCreateProposal
+                ? "Create Proposal"
+                : "Only admins can create proposals displayed on the frontend for now. Contact @nibnalin."}
             </button>
           </div>
         </main>
